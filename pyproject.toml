@@ -1,0 +1,66 @@
+[project]
+name = "transcode-pipeline"
+version = "0.1.0"
+description = "Event-driven media transcoding pipeline with FastAPI and Celery"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "celery>=5.4.0",
+    "redis>=5.0.0",
+    "minio>=7.2.0",
+    "boto3>=1.34.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "python-multipart>=0.0.6",
+    "prometheus-client>=0.19.0",
+    "structlog>=24.1.0",
+    "python-json-logger>=2.0.7",
+    "httpx>=0.27.0",
+    "tenacity>=8.2.0",
+    "ffmpeg-python>=0.2.0",
+    "python-magic>=0.4.27",
+    "pillow>=10.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.9.0",
+    "pre-commit>=3.6.0",
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "UP", "W", "C4", "T20", "TCH", "SIM", "PIE", "RUF", "PTH", "ERA", "PD", "PGH", "PYI", "TID", "ARG", "PL", "TRY", "NPY", "B", "A", "DTZ", "QF", "ISC", "ICN", "LOG"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"app/worker.py" = ["S101"]  # Allow assert in tests
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict_optional = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+[tool.poetry.group.lint]
+optional = true

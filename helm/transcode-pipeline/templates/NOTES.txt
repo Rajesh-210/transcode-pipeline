@@ -1,0 +1,51 @@
+# Transcoding Pipeline Helm Chart
+
+## Overview
+
+This chart deploys a production-ready media transcoding pipeline with:
+- FastAPI service for video upload and status monitoring
+- Celery-backed worker with FFmpeg for HLS transcoding
+- Redis queue for event-driven job dispatch
+- MinIO/S3 object storage integration
+- KEDA autoscaling for zero-downtime worker pool
+
+## Getting Started
+
+```bash
+helm repo add your-repo https://your-repo-url/
+helm install my-transcode your-repo/transcode-pipeline \
+  --set storage.backend=s3 \
+  --set s3.bucket=my-media \
+  --set image.repository=your-registry/transcode \
+  --set redis.enabled=true
+```
+
+## Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `image.repository` | Container image repository | - |
+| `image.tag` | Container image tag | latest |
+| `storage.backend` | Storage backend: minio, s3, gcs | minio |
+| `redis.enabled` | Enable Redis deployment | true |
+| `keda.enabled` | Enable KEDA autoscaling | true |
+
+## Getting Started
+
+1. Add your Helm repository
+2. Install with your preferred configuration:
+   ```bash
+   helm install my-transcode your-repo/transcode-pipeline \
+     --set storage.backend=s3 \
+     --set s3.bucket=my-media \
+     --set image.repository=your-registry/transcode \
+     --set redis.enabled=true
+   ```
+3. Wait for pods to be ready: `kubectl get pods -n transcode-pipeline`
+4. Check worker scaling: `kubectl get hpa -n transcode-pipeline`
+5. Access API: `kubectl port-forward svc/transcode-api 8000:8000 -n transcode-pipeline`
+
+## Values Files
+
+- `values.yaml` contains all default values with inline comments
+- Override via `--set` flags or custom values file
