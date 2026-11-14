@@ -40,7 +40,7 @@ services:
       - transcode-prod-net
 
   api:
-    image: ${DOCKERHUB_USER:-rajesh210}/transcode-api:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USER:-chilukurir}/transcode-api:${IMAGE_TAG:-latest}
     container_name: transcode-api
     restart: unless-stopped
     ports:
@@ -64,7 +64,7 @@ services:
       - transcode-prod-net
 
   worker:
-    image: ${DOCKERHUB_USER:-rajesh210}/transcode-worker:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USER:-chilukurir}/transcode-worker:${IMAGE_TAG:-latest}
     container_name: transcode-worker
     restart: unless-stopped
     environment:
