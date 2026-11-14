@@ -7,11 +7,11 @@ replicaCount:
 image:
   api:
     repository: chilukurir/transcode-api
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: latest
   worker:
     repository: chilukurir/transcode-worker
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: latest
 
 imagePullSecrets: []
