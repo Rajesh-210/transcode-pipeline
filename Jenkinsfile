@@ -31,6 +31,7 @@ pipeline {
             steps {
                 echo "Building Docker container images with tag ${IMAGE_TAG} and latest..."
                 sh '''
+                    export DOCKER_BUILDKIT=1
                     docker build -t ${API_IMAGE}:${IMAGE_TAG} -t ${API_IMAGE}:latest -f docker/api.Dockerfile .
                     docker build -t ${WORKER_IMAGE}:${IMAGE_TAG} -t ${WORKER_IMAGE}:latest -f docker/worker.Dockerfile .
                 '''
