@@ -82,3 +82,9 @@ affinity: {}
 storage:
   backend: local  # local, s3, gcs
   s3Bucket: ""
+  awsAccessKeyID: "CHANGE_ME"
+  awsSecretAccessKey: "CHANGE_ME"
+  awsDefaultRegion: "ap-south-1"
+  minioEndpoint: "minio:9000"
+  minioAccessKey: "minioadmin"
+  minioSecretKey: "minioadmin123"

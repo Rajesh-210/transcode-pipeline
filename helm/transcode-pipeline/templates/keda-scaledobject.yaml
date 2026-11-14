@@ -17,5 +17,5 @@ spec:
       metadata:
         address: {{ include "transcode-pipeline.fullname" . }}-redis-service.transcode-pipeline.svc.cluster.local:6379
         listName: transcode:queue
-        listLength: {{ .Values.keda.queueLengthThreshold }}
+        listLength: "{{ .Values.keda.queueLengthThreshold }}"
 {{- end }}
