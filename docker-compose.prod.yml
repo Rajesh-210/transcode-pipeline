@@ -16,27 +16,6 @@ services:
     networks:
       - transcode-prod-net
 
-  minio:
-    image: minio/minio:RELEASE.2024-06-01T21-44-45Z
-    container_name: transcode-minio
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
-    volumes:
-      - minio_prod_data:/data
-    command: ["server", "/data", "--console-address", ":9001"]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - transcode-prod-net
-
   api:
     image: ${DOCKERHUB_USER:-chilukurir}/transcode-api:${IMAGE_TAG:-latest}
     container_name: transcode-api
@@ -44,19 +23,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - STORAGE_BACKEND=minio
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadmin123}
-      - MINIO_BUCKET=transcoded-media
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_PATH=/app/local-storage
       - REDIS_URL=redis://redis:6379/0
       - API_TITLE=Transcoding Pipeline API
       - LOG_LEVEL=info
       - CORS_ORIGINS=*
+    volumes:
+      - local_storage:/app/local-storage
     depends_on:
       redis:
-        condition: service_healthy
-      minio:
         condition: service_healthy
     networks:
       - transcode-prod-net
@@ -66,17 +42,14 @@ services:
     container_name: transcode-worker
     restart: unless-stopped
     environment:
-      - STORAGE_BACKEND=minio
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadmin123}
-      - MINIO_BUCKET=transcoded-media
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_PATH=/app/local-storage
       - REDIS_URL=redis://redis:6379/0
       - LOG_LEVEL=info
+    volumes:
+      - local_storage:/app/local-storage
     depends_on:
       redis:
-        condition: service_healthy
-      minio:
         condition: service_healthy
       api:
         condition: service_started
@@ -85,7 +58,7 @@ services:
 
 volumes:
   redis_prod_data:
-  minio_prod_data:
+  local_storage:
 
 networks:
   transcode-prod-net:
