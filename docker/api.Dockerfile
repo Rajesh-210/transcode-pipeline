@@ -7,10 +7,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir poetry==1.8.2
 
 # Copy dependency manifests
-COPY pyproject.toml poetry.lock* ./
-
-# Ensure lockfile exists (recreated if missing)
-RUN if [ ! -f poetry.lock ]; then poetry lock --no-update; fi
+COPY pyproject.toml ./
 
 # Export requirements.txt from poetry (bypasses strict package-mode validation)
 RUN poetry export --without-hashes --only=main -f requirements.txt --output requirements.txt
