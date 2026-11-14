@@ -13,12 +13,6 @@ spec:
   triggers:
     - type: redis-list
       metadata:
-        address: redis-master:6379
+        address: redis-service.transcode-pipeline.svc.cluster.local:6379
         listName: transcode:queue
         listLength: "5"
-    - type: prometheus
-      metadata:
-        serverAddress: http://prometheus-k8s.monitoring.svc:9090
-        metricName: transcode_jobs_processed_total
-        query: sum(rate(transcode_jobs_processed_total[5m]))
-        threshold: "50"

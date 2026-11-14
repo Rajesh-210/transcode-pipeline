@@ -17,29 +17,13 @@ spec:
     spec:
       containers:
         - name: worker
-          image: your-registry/transcode-worker:latest
+          image: chilukurir/transcode-worker:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: transcode-config
             - secretRef:
                 name: transcode-secrets
-          env:
-            - name: MINIO_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: transcode-secrets
-                  key: MINIO_ENDPOINT
-            - name: MINIO_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: transcode-secrets
-                  key: MINIO_ACCESS_KEY
-            - name: MINIO_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: transcode-secrets
-                  key: MINIO_SECRET_KEY
           resources:
             requests:
               cpu: "500m"
@@ -47,3 +31,9 @@ spec:
             limits:
               cpu: "2"
               memory: "2Gi"
+          volumeMounts:
+            - name: local-storage
+              mountPath: /app/local-storage
+      volumes:
+        - name: local-storage
+          emptyDir: {}

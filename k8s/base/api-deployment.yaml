@@ -17,11 +17,11 @@ spec:
     spec:
       containers:
         - name: api
-          image: your-registry/transcode-api:latest
+          image: chilukurir/transcode-api:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
-              protocol: TCP
+              name: http
           envFrom:
             - configMapRef:
                 name: transcode-config
@@ -33,16 +33,19 @@ spec:
                 secretKeyRef:
                   name: transcode-secrets
                   key: MINIO_ENDPOINT
+                  optional: true
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: transcode-secrets
                   key: MINIO_ACCESS_KEY
+                  optional: true
             - name: MINIO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: transcode-secrets
                   key: MINIO_SECRET_KEY
+                  optional: true
           resources:
             requests:
               cpu: "100m"
@@ -50,15 +53,21 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
-          readinessProbe:
+          volumeMounts:
+            - name: local-storage
+              mountPath: /app/local-storage
+          livenessProbe:
             httpGet:
               path: /healthz
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /healthz
               port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 15
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: local-storage
+          emptyDir: {}

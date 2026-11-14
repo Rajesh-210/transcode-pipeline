@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "transcode-pipeline.fullname" . }}-config
+  labels:
+    {{- include "transcode-pipeline.labels" . | nindent 4 }}
+data:
+  STORAGE_BACKEND: {{ .Values.storage.backend | quote }}
+  LOCAL_STORAGE_PATH: "/app/local-storage"
+  REDIS_URL: "redis://{{ include "transcode-pipeline.fullname" . }}-redis-service:6379/0"
+  API_TITLE: "Transcoding Pipeline API"
+  LOG_LEVEL: {{ .Values.logLevel | default "info" | quote }}
+  CORS_ORIGINS: {{ .Values.corsOrigins | default "*" | quote }}

@@ -1,0 +1,21 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "transcode-pipeline.fullname" . }}-worker-keda
+  labels:
+    {{- include "transcode-pipeline.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "transcode-pipeline.fullname" . }}-worker
+  pollingInterval: {{ .Values.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  triggers:
+    - type: redis-list
+      metadata:
+        address: {{ include "transcode-pipeline.fullname" . }}-redis-service.transcode-pipeline.svc.cluster.local:6379
+        listName: transcode:queue
+        listLength: {{ .Values.keda.queueLengthThreshold }}
+{{- end }}

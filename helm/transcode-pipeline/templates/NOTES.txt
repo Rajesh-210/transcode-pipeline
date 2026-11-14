@@ -4,48 +4,58 @@
 
 This chart deploys a production-ready media transcoding pipeline with:
 - FastAPI service for video upload and status monitoring
-- Celery-backed worker with FFmpeg for HLS transcoding
+- FFmpeg-backed worker for HLS transcoding
 - Redis queue for event-driven job dispatch
-- MinIO/S3 object storage integration
 - KEDA autoscaling for zero-downtime worker pool
+- Ingress for external API access
 
-## Getting Started
+## Prerequisites
+
+- Kubernetes cluster 1.20+
+- KEDA operator installed (if keda.enabled=true)
+- Nginx Ingress Controller installed (if ingress.enabled=true)
+
+## Get Started
 
 ```bash
-helm repo add your-repo https://your-repo-url/
-helm install my-transcode your-repo/transcode-pipeline \
-  --set storage.backend=s3 \
-  --set s3.bucket=my-media \
-  --set image.repository=your-registry/transcode \
-  --set redis.enabled=true
+helm install transcode-pipeline ./helm/transcode-pipeline \
+  --namespace transcode-pipeline \
+  --create-namespace
 ```
 
 ## Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `image.repository` | Container image repository | - |
-| `image.tag` | Container image tag | latest |
-| `storage.backend` | Storage backend: minio, s3, gcs | minio |
-| `redis.enabled` | Enable Redis deployment | true |
+| `image.api.repository` | API container image repository | chilukurir/transcode-api |
+| `image.api.tag` | API container image tag | latest |
+| `image.worker.repository` | Worker container image repository | chilukurir/transcode-worker |
+| `image.worker.tag` | Worker container image tag | latest |
+| `replicaCount.api` | Number of API replicas | 2 |
+| `replicaCount.worker` | Number of worker replicas | 1 |
 | `keda.enabled` | Enable KEDA autoscaling | true |
+| `keda.minReplicaCount` | Min worker replicas (KEDA) | 0 |
+| `keda.maxReplicaCount` | Max worker replicas (KEDA) | 10 |
+| `storage.backend` | Storage backend: local, s3 | local |
+| `ingress.enabled` | Enable Ingress resource | false |
 
-## Getting Started
+## Accessing the Application
 
-1. Add your Helm repository
-2. Install with your preferred configuration:
-   ```bash
-   helm install my-transcode your-repo/transcode-pipeline \
-     --set storage.backend=s3 \
-     --set s3.bucket=my-media \
-     --set image.repository=your-registry/transcode \
-     --set redis.enabled=true
-   ```
-3. Wait for pods to be ready: `kubectl get pods -n transcode-pipeline`
-4. Check worker scaling: `kubectl get hpa -n transcode-pipeline`
-5. Access API: `kubectl port-forward svc/transcode-api 8000:8000 -n transcode-pipeline`
+After installation, access the API:
 
-## Values Files
+```bash
+# Port-forward the API service
+kubectl port-forward svc/transcode-api 8000:8000 -n transcode-pipeline
 
-- `values.yaml` contains all default values with inline comments
-- Override via `--set` flags or custom values file
+# Open API docs
+open http://localhost:8000/docs
+```
+
+If Ingress is enabled, configure DNS to point to your Ingress LoadBalancer IP.
+
+## Uninstall
+
+```bash
+helm uninstall transcode-pipeline -n transcode-pipeline
+kubectl delete namespace transcode-pipeline
+```
