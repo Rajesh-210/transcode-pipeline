@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'rajesh210'
+        DOCKERHUB_USER = 'chilukurir'
         DOCKERHUB_CREDENTIALS_ID = 'dockerhub-credentials'
         API_IMAGE = "${DOCKERHUB_USER}/transcode-api"
         WORKER_IMAGE = "${DOCKERHUB_USER}/transcode-worker"
