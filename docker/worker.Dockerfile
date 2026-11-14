@@ -40,5 +40,5 @@ USER appuser
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Worker runs celery, no exposed port needed
-CMD ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=2", "--pool=prefork"]
+# Worker runs as standalone Python script (reads Redis queue directly)
+CMD ["python", "app/worker.py"]
