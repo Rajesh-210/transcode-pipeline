@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Event-driven media transcoding pipeline with FastAPI and Celery"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{name = "Rajesh Chilukuri", email = "rajesh@example.com"}]
+authors = [{name = "Rajesh Chilukuri", email = "rajeshchilukuri210@example.com"}]
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
