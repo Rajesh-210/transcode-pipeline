@@ -3,17 +3,19 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Copy dependency manifests first
+# Install Poetry first!
+RUN pip install --no-cache-dir poetry==1.8.2
+
+# Copy dependency manifests
 COPY pyproject.toml poetry.lock* ./
 
-# Ensure poetry lockfile exists; if not, generate from pyproject.toml
+# Ensure lockfile exists (recreated if missing)
 RUN if [ ! -f poetry.lock ]; then poetry lock --no-update; fi
 
-# Export requirements.txt from poetry (works even if pyproject.toml is in package mode)
-RUN pip install --no-cache-dir poetry==1.8.2 && \
-    poetry export --without-hashes --only=main -f requirements.txt --output requirements.txt
+# Export requirements.txt from poetry (bypasses strict package-mode validation)
+RUN poetry export --without-hashes --only=main -f requirements.txt --output requirements.txt
 
-# Build stage: install Python dependencies
+# Install Python dependencies from requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Runtime stage
@@ -30,8 +32,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /bin/bash appuser
 WORKDIR /app
 
-# Copy requirements and venv from builder
+# Copy installed Python packages from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+
+# Copy requirements file (optional, for debugging)
 COPY --from=builder /app/requirements.txt /app/requirements.txt
 
 # Copy application code last (leverages Docker layer caching)
