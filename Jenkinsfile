@@ -57,13 +57,17 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 echo "Deploying application containers on EC2..."
-                sh '''
-                    export DOCKERHUB_USER=${DOCKERHUB_USER}
-                    export IMAGE_TAG=${IMAGE_TAG}
-                    docker compose -f docker-compose.prod.yml pull
-                    docker compose -f docker-compose.prod.yml down --remove-orphans || true
-                    docker compose -f docker-compose.prod.yml up -d
-                '''
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh '''
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        export DOCKERHUB_USER=${DOCKERHUB_USER}
+                        export IMAGE_TAG=${IMAGE_TAG}
+                        docker compose -f docker-compose.prod.yml pull
+                        docker compose -f docker-compose.prod.yml down --remove-orphans || true
+                        docker compose -f docker-compose.prod.yml up -d
+                        docker logout
+                    '''
+                }
             }
         }
 
