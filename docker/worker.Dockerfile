@@ -1,21 +1,17 @@
 # Build stage
 FROM python:3.11-slim AS builder
 
+WORKDIR /app
+
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install poetry
-RUN pip install --no-cache-dir poetry==1.8.2
-
-WORKDIR /app
-
-COPY pyproject.toml poetry.lock* ./
-
-RUN poetry config virtualenvs.create false \
-    && poetry install --only=main --no-interaction --no-ansi
+# Copy and install Python requirements
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # Runtime stage
 FROM python:3.11-slim AS runtime
@@ -31,9 +27,10 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
 
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
 
+# Copy application source code
 COPY app/ ./app/
 
 RUN chown -R appuser:appuser /app
