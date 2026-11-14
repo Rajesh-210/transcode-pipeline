@@ -1,5 +1,7 @@
-# app/services/storage.py
+"""Object storage service supporting MinIO and AWS S3."""
+
 import os
+import shutil
 from pathlib import Path
 from app.core.config import get_settings
 
@@ -10,12 +12,12 @@ class StorageService:
         self.backend = settings.storage_backend
         self.local_path = getattr(settings, 'local_storage_path', '/app/local-storage')
 
-        if self.backend == "minio":
+        if self.backend in ("minio", "s3"):
             from minio import Minio
             self.endpoint = settings.minio_endpoint.replace("http://", "").replace("https://", "")
-            self.access_key = settings.minio_access_key
-            self.secret_key = settings.minio_secret_key
-            self.bucket = settings.minio_bucket
+            self.access_key = settings.aws_access_key_id
+            self.secret_key = settings.aws_secret_access_key
+            self.bucket = settings.s3_bucket
             self.client = Minio(
                 endpoint=self.endpoint,
                 access_key=self.access_key,
@@ -24,7 +26,7 @@ class StorageService:
             )
             self._ensure_bucket()
         else:
-            # Local storage - create directory if needed
+            # Local storage fallback
             Path(self.local_path).mkdir(parents=True, exist_ok=True)
             self.client = None
 
@@ -37,7 +39,7 @@ class StorageService:
                 print(f"Warning: could not ensure bucket exists: {e}")
 
     def upload_file(self, object_name: str, file_data: bytes, content_type: str) -> str:
-        if self.backend == "minio" and self.client:
+        if self.client:
             from io import BytesIO
             stream = BytesIO(file_data)
             self.client.put_object(
@@ -49,22 +51,21 @@ class StorageService:
             )
             return object_name
         else:
-            # Local storage
+            # Local storage fallback
             dest = Path(self.local_path) / object_name
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(file_data)
             return str(dest)
 
     def download_file(self, object_name: str, target_path: str) -> None:
-        if self.backend == "minio" and self.client:
+        if self.client:
             self.client.fget_object(self.bucket, object_name, target_path)
         else:
             src = Path(self.local_path) / object_name
-            import shutil
             shutil.copy(str(src), target_path)
 
     def upload_local_file(self, object_name: str, local_path: str, content_type: str = "application/octet-stream") -> None:
-        if self.backend == "minio" and self.client:
+        if self.client:
             self.client.fput_object(self.bucket, object_name, local_path, content_type=content_type)
         else:
             import shutil
@@ -73,7 +74,7 @@ class StorageService:
             shutil.copy(local_path, str(dest))
 
     def get_presigned_url(self, object_name: str, expires_in_seconds: int = 3600) -> str:
-        if self.backend == "minio" and self.client:
+        if self.client:
             from datetime import timedelta
             return self.client.presigned_get_object(
                 self.bucket,
